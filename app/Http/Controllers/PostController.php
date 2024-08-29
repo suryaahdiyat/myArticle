@@ -9,142 +9,175 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    public function landingPage()
-    {
-        return view('Pages.landingPage', [
-            'posts' => Post::latest()->limit(6)->get()
-        ]);
-    }
+	public function landingPage()
+	{
+		return view('Pages.landingPage', [
+			'posts' => Post::latest()->limit(6)->get()
+		]);
+	}
 
-    public function allPost()
-    {
-        return view('Pages.allPosts', [
-            'posts' => Post::oldest()->paginate(8)
-        ]);
-    }
+	public function allPost()
+	{
 
-    public function index()
-    {
-        return view('Posts.index', [
-            'posts' => Post::latest()->paginate(8),
-            'su' => true
-        ]);
-    }
 
-    public function myPosts()
-    {
-        $posts = Post::where('user_id', auth()->user()->id)->paginate(8);
+		// return view('Pages.allPosts', [
+		// 	'posts' => Post::oldest()->paginate(8)
+		// ]);
 
-        return view('Posts.index', [
-            'posts' => $posts
-        ]);
-    }
+		$search = request('search');
+		// dd($search);
 
-    public function show(Post $post)
-    {
-        // dd('show function');
-        // dd($post);
-        $initials = $this->getInitials($post->user->name);
-        return view('Posts.detail', [
-            'post' => $post,
-            'initial' => $initials
-        ]);
-        // return view('pages.detail2', [
-        //     'post' => $post
-        // ]);
-    }
+		// Mulai query
+		$posts = Post::latest();
 
-    public function create()
-    {
-        // dd('berhasil');
-        return view('Posts.addpost');
-    }
-    public function store(Request $request)
-    {
+		$query = false;
+		// Jika ada input search, tambahkan filter
+		if ($search) {
+			// $posts->where('title', 'like',
+			// 	'%' . $search . '%'
+			// );
+			$posts = $posts->where(function ($query) use ($search) {
+				$query->where('title', 'like', '%' . $search . '%')
+					->orWhere('content', 'like', '%' . $search . '%')
+					->orWhereHas('user', function ($query) use ($search) {
+						$query->where('name', 'like', '%' . $search . '%');
+					});
+			});
+			$query = true;
+		}
 
-        // dd($request->all());//error insert data
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'image' => 'image|file|max:1024',
-            'content' => 'required', //content null
-        ]);
+		// Lanjutkan dengan paginasi
+		$posts = $posts->paginate(8);
 
-        $image = null;
-        if ($request->file('image')) $image = $request->file('image')->store('post-images');
-        Post::create([
-            'user_id' => auth()->user()->id,
-            'title' => $request->title,
-            'image' => $image,
-            'content' => $request->content,
-        ]);
+		return view('Pages.allPosts', [
+			'posts' => $posts,
+			'query' => $query
+		]);
+	}
 
-        // return view('Posts.index', [
-        //     'posts' => Post::where('user_id', auth()->user()->id)->get()
-        // ]);
+	public function index()
+	{
 
-        return redirect('/myPosts')->with('success', 'added new post successfully!');
-    }
-    public function edit(Post $post)
-    {
-        return view('Posts.edit', [
-            'post' => $post
-        ]);
-    }
-    public function update(Request $request, Post $post)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'image' => 'image|file|max:1024',
-            'content' => 'required',
-        ]);
+		return view('Posts.index', [
+			'posts' => Post::latest()->paginate(8),
+			'su' => true
+		]);
+	}
 
-        $image = null;
-        if ($request->oldImage) {
-            $image = $request->oldImage;
-        }
+	public function myPosts()
+	{
+		$posts = Post::where('user_id', auth()->user()->id)->paginate(8);
 
-        if ($request->file('image')) {
-            if ($request->oldImage) {
-                Storage::delete($request->oldImage);
-            }
-            $image = $request->file('image')->store('post-images');
-        }
-        $post->update([
-            'title' => $request->title,
-            'image' => $image,
-            'content' => $request->content,
-        ]);
+		return view('Posts.index', [
+			'posts' => $posts
+		]);
+	}
 
-        // return view('Posts.index', [
-        //     'posts' => Post::where('user_id', auth()->user()->id)->get()
-        // ]);
+	public function show(Post $post)
+	{
+		// dd('show function');
+		// dd($post);
+		$initials = $this->getInitials($post->user->name);
+		return view('Posts.detail', [
+			'post' => $post,
+			'initial' => $initials
+		]);
+		// return view('pages.detail2', [
+		//     'post' => $post
+		// ]);
+	}
 
-        return redirect('/myPosts')->with('success', 'updated successfully!');
-    }
-    public function destroy(Post $post)
-    {
-        if ($post->image) Storage::delete($post->image);
-        $post->delete();
+	public function create()
+	{
+		// dd('berhasil');
+		return view('Posts.addpost');
+	}
+	public function store(Request $request)
+	{
 
-        return redirect('/myPosts')->with('success', 'post deleted successfully!');
-    }
+		// dd($request->all());//error insert data
+		$request->validate([
+			'title' => 'required|string|max:255',
+			'image' => 'image|file|max:1024',
+			'content' => 'required', //content null
+		]);
 
-    public function postsBy(User $user)
-    {
-        return view('pages.postsBy', [
-            'posts' => $user->posts()->paginate(8)
-        ]);
-    }
+		$image = null;
+		if ($request->file('image')) $image = $request->file('image')->store('post-images');
+		Post::create([
+			'user_id' => auth()->user()->id,
+			'title' => $request->title,
+			'image' => $image,
+			'content' => $request->content,
+		]);
 
-    protected function getInitials($name)
-    {
-        $words = explode(' ', $name);
-        $initials = '';
+		// return view('Posts.index', [
+		//     'posts' => Post::where('user_id', auth()->user()->id)->get()
+		// ]);
 
-        foreach ($words as $word) {
-            $initials .= strtoupper($word[0]);
-        }
+		return redirect('/myPosts')->with('success', 'added new post successfully!');
+	}
+	public function edit(Post $post)
+	{
+		return view('Posts.edit', [
+			'post' => $post
+		]);
+	}
+	public function update(Request $request, Post $post)
+	{
+		$request->validate([
+			'title' => 'required|string|max:255',
+			'image' => 'image|file|max:1024',
+			'content' => 'required',
+		]);
 
-        return $initials;
-    }
+		$image = null;
+		if ($request->oldImage) {
+			$image = $request->oldImage;
+		}
+
+		if ($request->file('image')) {
+			if ($request->oldImage) {
+				Storage::delete($request->oldImage);
+			}
+			$image = $request->file('image')->store('post-images');
+		}
+		$post->update([
+			'title' => $request->title,
+			'image' => $image,
+			'content' => $request->content,
+		]);
+
+		// return view('Posts.index', [
+		//     'posts' => Post::where('user_id', auth()->user()->id)->get()
+		// ]);
+
+		return redirect('/myPosts')->with('success', 'updated successfully!');
+	}
+	public function destroy(Post $post)
+	{
+		if ($post->image) Storage::delete($post->image);
+		$post->delete();
+
+		return redirect('/myPosts')->with('success', 'post deleted successfully!');
+	}
+
+	public function postsBy(User $user)
+	{
+		return view('pages.postsBy', [
+			'posts' => $user->posts()->paginate(8)
+		]);
+	}
+
+	protected function getInitials($name)
+	{
+		$words = explode(' ', $name);
+		$initials = '';
+
+		foreach ($words as $word) {
+			$initials .= strtoupper($word[0]);
+		}
+
+		return $initials;
+	}
 }
