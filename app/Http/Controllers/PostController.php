@@ -9,175 +9,234 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-	public function landingPage()
-	{
-		return view('Pages.landingPage', [
-			'posts' => Post::latest()->limit(6)->get()
-		]);
-	}
 
-	public function allPost()
-	{
+    public function toggleLike(Request $request, Post $post)
+    // {
+    //     // dd('here at toggle');
+    //     // dd($post);
+    //     // return 'ejeje';
+    //     // Cek apakah user sudah me-like post ini
+    //     $like = $post->likes()->where('user_id', auth()->id())->first();
+
+    //     if ($like) {
+    //         // Jika sudah like, maka unlike
+    //         $like->delete();
+    //         $status = 'unliked';
+    //     } else {
+    //         // Jika belum like, maka like
+    //         $post->likes()->create([
+    //             'user_id' => auth()->id(),
+    //         ]);
+    //         $status = 'liked';
+    //     }
+
+    //     return response()->json([
+    //         'status' => $status,
+    //         'likesCount' => $post->likes()->count(),
+    //     ]);
+    // }
+    {
+        try {
+            // Cek apakah user sudah like
+            $like = $post->likes()->where('user_id', auth()->id())->first();
+
+            if ($like) {
+                // Jika sudah like, maka unlike
+                $like->delete();
+                $status = 'unliked';
+            } else {
+                // Jika belum like, maka like
+                $post->likes()->create([
+                    'user_id' => auth()->id(),
+                ]);
+                $status = 'liked';
+            }
+
+            return response()->json([
+                'status' => $status,
+                'likesCount' => $post->likes()->count(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error toggling like: ' . $e->getMessage());
+            return response()->json(['error' => 'Something went wrong!'], 500);
+        }
+    }
 
 
-		// return view('Pages.allPosts', [
-		// 	'posts' => Post::oldest()->paginate(8)
-		// ]);
+    public function landingPage()
+    {
+        return view('Pages.landingPage', [
+            'posts' => Post::latest()->limit(6)->get()
+        ]);
+    }
 
-		$search = request('search');
-		// dd($search);
+    public function allPost()
+    {
 
-		// Mulai query
-		$posts = Post::latest();
 
-		$query = false;
-		// Jika ada input search, tambahkan filter
-		if ($search) {
-			// $posts->where('title', 'like',
-			// 	'%' . $search . '%'
-			// );
-			$posts = $posts->where(function ($query) use ($search) {
-				$query->where('title', 'like', '%' . $search . '%')
-					->orWhere('content', 'like', '%' . $search . '%')
-					->orWhereHas('user', function ($query) use ($search) {
-						$query->where('name', 'like', '%' . $search . '%');
-					});
-			});
-			$query = true;
-		}
+        // return view('Pages.allPosts', [
+        // 	'posts' => Post::oldest()->paginate(8)
+        // ]);
 
-		// Lanjutkan dengan paginasi
-		$posts = $posts->paginate(8);
+        $search = request('search');
+        // dd($search);
 
-		return view('Pages.allPosts', [
-			'posts' => $posts,
-			'query' => $query
-		]);
-	}
+        // Mulai query
+        $posts = Post::latest();
 
-	public function index()
-	{
+        $query = false;
+        // Jika ada input search, tambahkan filter
+        if ($search) {
+            // $posts->where('title', 'like',
+            // 	'%' . $search . '%'
+            // );
+            $posts = $posts->where(function ($query) use ($search) {
+                $query->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('content', 'like', '%' . $search . '%')
+                    ->orWhereHas('user', function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    });
+            });
+            $query = true;
+        }
 
-		return view('Posts.index', [
-			'posts' => Post::latest()->paginate(8),
-			'su' => true
-		]);
-	}
+        // Lanjutkan dengan paginasi
+        $posts = $posts->paginate(8);
 
-	public function myPosts()
-	{
-		$posts = Post::where('user_id', auth()->user()->id)->paginate(8);
+        return view('Pages.allPosts', [
+            'posts' => $posts,
+            'query' => $query
+        ]);
+    }
 
-		return view('Posts.index', [
-			'posts' => $posts
-		]);
-	}
+    public function index()
+    {
 
-	public function show(Post $post)
-	{
-		// dd('show function');
-		// dd($post);
-		$initials = $this->getInitials($post->user->name);
-		return view('Posts.detail', [
-			'post' => $post,
-			'initial' => $initials
-		]);
-		// return view('pages.detail2', [
-		//     'post' => $post
-		// ]);
-	}
+        return view('Posts.index', [
+            'posts' => Post::latest()->paginate(8),
+            'su' => true
+        ]);
+    }
 
-	public function create()
-	{
-		// dd('berhasil');
-		return view('Posts.addpost');
-	}
-	public function store(Request $request)
-	{
+    public function myPosts()
+    {
+        $posts = Post::where('user_id', auth()->user()->id)->paginate(8);
 
-		// dd($request->all());//error insert data
-		$request->validate([
-			'title' => 'required|string|max:255',
-			'image' => 'image|file|max:1024',
-			'content' => 'required', //content null
-		]);
+        return view('Posts.index', [
+            'posts' => $posts
+        ]);
+    }
 
-		$image = null;
-		if ($request->file('image')) $image = $request->file('image')->store('post-images');
-		Post::create([
-			'user_id' => auth()->user()->id,
-			'title' => $request->title,
-			'image' => $image,
-			'content' => $request->content,
-		]);
+    public function show(Post $post)
+    {
+        $hasLiked = $post->likes()->where('user_id', auth()->id())->exists();
+        $likesCount = $post->likes()->count();
+        $commnetCount = $post->comments()->count();
+        $initials = $this->getInitials($post->user->name);
+        return view('Posts.detail', [
+            'post' => $post,
+            'initial' => $initials,
+            'likesCount' => $likesCount,
+            'commentCount' => $commnetCount,
+            'hasLiked' => $hasLiked
+        ]);
+    }
 
-		// return view('Posts.index', [
-		//     'posts' => Post::where('user_id', auth()->user()->id)->get()
-		// ]);
+    public function create()
+    {
+        // dd('berhasil');
+        return view('Posts.addpost');
+    }
+    public function store(Request $request)
+    {
 
-		return redirect('/myPosts')->with('success', 'added new post successfully!');
-	}
-	public function edit(Post $post)
-	{
-		return view('Posts.edit', [
-			'post' => $post
-		]);
-	}
-	public function update(Request $request, Post $post)
-	{
-		$request->validate([
-			'title' => 'required|string|max:255',
-			'image' => 'image|file|max:1024',
-			'content' => 'required',
-		]);
+        // dd($request->all());//error insert data
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'image|file|max:1024',
+            'content' => 'required', //content null
+        ]);
 
-		$image = null;
-		if ($request->oldImage) {
-			$image = $request->oldImage;
-		}
+        $image = null;
+        if ($request->file('image')) $image = $request->file('image')->store('post-images', 'public');
+        Post::create([
+            'user_id' => auth()->user()->id,
+            'title' => $request->title,
+            'image' => $image,
+            'content' => $request->content,
+        ]);
+        // Like::create([
+        //     'user_id' => 1,
+        //     'post_id' => 3
+        // ]);
 
-		if ($request->file('image')) {
-			if ($request->oldImage) {
-				Storage::delete($request->oldImage);
-			}
-			$image = $request->file('image')->store('post-images');
-		}
-		$post->update([
-			'title' => $request->title,
-			'image' => $image,
-			'content' => $request->content,
-		]);
+        // return view('Posts.index', [
+        //     'posts' => Post::where('user_id', auth()->user()->id)->get()
+        // ]);
 
-		// return view('Posts.index', [
-		//     'posts' => Post::where('user_id', auth()->user()->id)->get()
-		// ]);
+        return redirect('/myPosts')->with('success', 'added new post successfully!');
+    }
+    public function edit(Post $post)
+    {
+        return view('Posts.edit', [
+            'post' => $post
+        ]);
+    }
+    public function update(Request $request, Post $post)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'image' => 'image|file|max:1024',
+            'content' => 'required',
+        ]);
 
-		return redirect('/myPosts')->with('success', 'updated successfully!');
-	}
-	public function destroy(Post $post)
-	{
-		if ($post->image) Storage::delete($post->image);
-		$post->delete();
+        $image = null;
+        if ($request->oldImage) {
+            $image = $request->oldImage;
+        }
 
-		return redirect('/myPosts')->with('success', 'post deleted successfully!');
-	}
+        if ($request->file('image')) {
+            if ($request->oldImage) {
+                Storage::delete($request->oldImage);
+            }
+            $image = $request->file('image')->store('post-images', 'public');
+        }
+        $post->update([
+            'title' => $request->title,
+            'image' => $image,
+            'content' => $request->content,
+        ]);
 
-	public function postsBy(User $user)
-	{
-		return view('pages.postsBy', [
-			'posts' => $user->posts()->paginate(8)
-		]);
-	}
+        // return view('Posts.index', [
+        //     'posts' => Post::where('user_id', auth()->user()->id)->get()
+        // ]);
 
-	protected function getInitials($name)
-	{
-		$words = explode(' ', $name);
-		$initials = '';
+        return redirect('/myPosts')->with('success', 'updated successfully!');
+    }
+    public function destroy(Post $post)
+    {
+        if ($post->image) Storage::delete($post->image);
+        $post->delete();
 
-		foreach ($words as $word) {
-			$initials .= strtoupper($word[0]);
-		}
+        return redirect('/myPosts')->with('success', 'post deleted successfully!');
+    }
 
-		return $initials;
-	}
+    public function postsBy(User $user)
+    {
+        return view('pages.postsBy', [
+            'posts' => $user->posts()->paginate(8)
+        ]);
+    }
+
+    protected function getInitials($name)
+    {
+        $words = explode(' ', $name);
+        $initials = '';
+
+        foreach ($words as $word) {
+            $initials .= strtoupper($word[0]);
+        }
+
+        return $initials;
+    }
 }

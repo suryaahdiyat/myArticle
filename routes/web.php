@@ -1,8 +1,17 @@
 <?php
 
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// Route::post('/posts/{post}/toggle-like', function(){
+//     return "dd('here')";
+// })->name('toggle-like');
+
+// Route::post('/test', function(){
+//     return "dd('here dd')";
+// });
 
 Route::get('/', fn() => redirect('/landingPage'));
 Route::get('/landingPage', [PostController::class, 'landingPage']);
@@ -31,3 +40,9 @@ Route::get('/myPosts/edit/{post}', [PostController::class, 'edit'])->middleware(
 Route::put('/myPosts/{post}', [PostController::class, 'update'])->middleware('auth');
 Route::delete('/myPosts/{post}', [PostController::class, 'destroy'])->middleware('auth');
 Route::get('/postsBy/{user}', [PostController::class, 'postsBy']);
+
+// Route::post('/posts/{post}/toggle-like', [PostController::class, 'toggleLike'])->name('toggle-like');
+Route::post('/post/toggle-like', [LikeController::class, 'toggleLike'])->middleware('auth');
+
+
+// Route::resource('/like',LikeController::class);

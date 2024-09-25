@@ -52,8 +52,14 @@ class User extends Authenticatable
         return $this->hasMany(Post::class);
     }
 
+    public function likedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'likes')->withTimestamps();
+    }
+
+
     public function getRouteKeyName(): string
     {
         return 'email';
-    } 
+    }
 }

@@ -19,6 +19,16 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'likes')->withTimestamps();
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     public function sluggable(): array
     {
         return [
@@ -32,5 +42,5 @@ class Post extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
-    } 
+    }
 }
