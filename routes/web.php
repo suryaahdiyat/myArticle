@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
@@ -44,5 +45,6 @@ Route::get('/postsBy/{user}', [PostController::class, 'postsBy']);
 // Route::post('/posts/{post}/toggle-like', [PostController::class, 'toggleLike'])->name('toggle-like');
 Route::post('/post/toggle-like', [LikeController::class, 'toggleLike'])->middleware('auth');
 
+Route::resource('/comments', CommentController::class)->middleware('auth');
 
 // Route::resource('/like',LikeController::class);

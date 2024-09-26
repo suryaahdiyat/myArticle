@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('pp')->nullable();
             $table->string('role');
+            $table->string('initial');
             $table->string('email')->unique();
             $table->string('password');
             $table->timestamps();

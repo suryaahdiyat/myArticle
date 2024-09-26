@@ -1,4 +1,4 @@
-<footer class="flex items-center justify-center w-full text-white bg-black h-80">
+<footer class="flex items-center justify-center w-full text-white bg-black  h-80">
     <div class="w-full px-2 text-center lg:w-1/3">
         <h1 class="mb-5 text-2xl tracking-widest text-center md:text-4xl font-bodoni">NORDIC ROSE</h1>
         <p class="mb-8 text-xs text-center">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Esse eaque

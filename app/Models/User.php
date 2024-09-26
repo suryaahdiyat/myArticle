@@ -57,6 +57,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Post::class, 'likes')->withTimestamps();
     }
 
+    public function comments(){
+        return $this->hasMany(Comment::class);
+    }
+
 
     public function getRouteKeyName(): string
     {

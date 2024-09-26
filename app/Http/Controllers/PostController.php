@@ -10,58 +10,6 @@ use Illuminate\Support\Facades\Storage;
 class PostController extends Controller
 {
 
-    public function toggleLike(Request $request, Post $post)
-    // {
-    //     // dd('here at toggle');
-    //     // dd($post);
-    //     // return 'ejeje';
-    //     // Cek apakah user sudah me-like post ini
-    //     $like = $post->likes()->where('user_id', auth()->id())->first();
-
-    //     if ($like) {
-    //         // Jika sudah like, maka unlike
-    //         $like->delete();
-    //         $status = 'unliked';
-    //     } else {
-    //         // Jika belum like, maka like
-    //         $post->likes()->create([
-    //             'user_id' => auth()->id(),
-    //         ]);
-    //         $status = 'liked';
-    //     }
-
-    //     return response()->json([
-    //         'status' => $status,
-    //         'likesCount' => $post->likes()->count(),
-    //     ]);
-    // }
-    {
-        try {
-            // Cek apakah user sudah like
-            $like = $post->likes()->where('user_id', auth()->id())->first();
-
-            if ($like) {
-                // Jika sudah like, maka unlike
-                $like->delete();
-                $status = 'unliked';
-            } else {
-                // Jika belum like, maka like
-                $post->likes()->create([
-                    'user_id' => auth()->id(),
-                ]);
-                $status = 'liked';
-            }
-
-            return response()->json([
-                'status' => $status,
-                'likesCount' => $post->likes()->count(),
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Error toggling like: ' . $e->getMessage());
-            return response()->json(['error' => 'Something went wrong!'], 500);
-        }
-    }
-
 
     public function landingPage()
     {
@@ -132,12 +80,13 @@ class PostController extends Controller
         $hasLiked = $post->likes()->where('user_id', auth()->id())->exists();
         $likesCount = $post->likes()->count();
         $commnetCount = $post->comments()->count();
-        $initials = $this->getInitials($post->user->name);
+        $comments = $post->comments()->latest()->simplePaginate(5);
+        // dd($comments);
         return view('Posts.detail', [
             'post' => $post,
-            'initial' => $initials,
             'likesCount' => $likesCount,
             'commentCount' => $commnetCount,
+            'comments' => $comments,
             'hasLiked' => $hasLiked
         ]);
     }
@@ -165,15 +114,6 @@ class PostController extends Controller
             'image' => $image,
             'content' => $request->content,
         ]);
-        // Like::create([
-        //     'user_id' => 1,
-        //     'post_id' => 3
-        // ]);
-
-        // return view('Posts.index', [
-        //     'posts' => Post::where('user_id', auth()->user()->id)->get()
-        // ]);
-
         return redirect('/myPosts')->with('success', 'added new post successfully!');
     }
     public function edit(Post $post)
@@ -206,10 +146,6 @@ class PostController extends Controller
             'image' => $image,
             'content' => $request->content,
         ]);
-
-        // return view('Posts.index', [
-        //     'posts' => Post::where('user_id', auth()->user()->id)->get()
-        // ]);
 
         return redirect('/myPosts')->with('success', 'updated successfully!');
     }

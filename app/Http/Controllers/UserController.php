@@ -48,16 +48,16 @@ class UserController extends Controller
         $validatedData['password'] = bcrypt($validatedData['password']);
 
         $validatedData['role'] = 'user';
+        $validatedData['initial'] = $this->getInitials($validatedData['name']);
+        // dd($validatedData);
         User::create($validatedData);
         return redirect('/login')->with('success', 'register success');
     }
 
     public function myAccount(Request $request){
         $user = User::find(auth()->user()->id);
-        $initials = $this->getInitials($user->name);
         return view('Users.myAccount',[
-            'user' => $user,
-            'initial' => $initials
+            'user' => $user
         ]);
     }
 
@@ -100,15 +100,12 @@ class UserController extends Controller
         return redirect('/users')->with('success', 'deleted successfully!');
     }
     public function eMyAccount(Request $request, User $user) {
-        // dd(auth()->user()->password);//bisa
-        // dd($request);
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            // 'pp' => 'image|file|max:512',
-            // 'oldPassword' => 'nullable|string|min:4',
-            // 'password' => 'nullable|string|min:4',
-            // 'rePassword' => 'nullable|string|min:4'
         ]);
+
+        $validatedData['initial'] = $this->getInitials($validatedData['name']);
 
         if($request->removeCheck == "on"){
             Storage::delete($request->oldPP);

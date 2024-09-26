@@ -14,7 +14,7 @@
 			@method('PUT')
 			<div class="flex flex-col items-center justify-center pb-3 mb-3 border-b-2 border-black">
 				<div id="tempPP" class="flex items-center justify-center w-24 h-24 text-2xl text-white rounded-full bg-slate-500">
-					{{ $initial }}
+					{{ $user->initial }}
 				</div>
 				@if($user->pp)
 				<img src="{{ asset('storage/' . $user->pp) }}" class="object-cover my-2 rounded-full img-preview max-h-24 max-w-24" alt="">
@@ -111,18 +111,18 @@
 				}
 			})
 		@endif
-		
+
         const handlePreview = () => {
             const image = document.querySelector('#pp')
             const imagePreview = document.querySelector('.img-preview')
-            
+
 			document.querySelector('#tempPP').style.display = 'none'
 			document.querySelector('#removeBtn').style.display = 'block'
             imagePreview.style.display = 'block';
 
             const oFReader = new FileReader()
             oFReader.readAsDataURL(image.files[0])
-            
+
             oFReader.onload = function(oFREvent){
                 imagePreview.src = oFREvent.target.result
             }
@@ -132,10 +132,10 @@
             // if (image.files && image.files[0]) {
 						// 	document.querySelector('#tempPP').style.display = 'none'
             // 	imagePreview.style.display = 'block'; // Tampilkan elemen pratinjau
-            
+
             // const oFReader = new FileReader();
             // oFReader.readAsDataURL(image.files[0]); // Baca file yang diunggah
-            
+
             // oFReader.onload = function(oFREvent) {
             // imagePreview.src = oFREvent.target.result; // Setel src elemen pratinjau dengan hasil pembacaan file
             // };
@@ -147,7 +147,7 @@
             // }
         }
 
-        
+
 
         const handleRemove = () => {
             document.querySelector('#pp').value = ""
