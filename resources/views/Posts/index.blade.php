@@ -56,7 +56,7 @@
     <script>
         // console.log($posts)
 		const handleDelete = () => {
-		        return confirm('Are you want to delete this post?')
+		        return confirm('Are you sure want to delete this post?')
 		    }
     </script>
 </x-admin-navbar>
