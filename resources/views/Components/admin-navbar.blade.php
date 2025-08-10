@@ -11,6 +11,9 @@
 				<li><a href="/"
 						class="block p-2 my-1 text-center duration-100 border-2 border-black rounded hover:bg-black hover:text-white hover:cursor-pointer">Dashboard</a>
 				</li>
+				{{-- <li><a href="/reports"
+						class="my-1 border-2 border-black rounded block p-2 text-center duration-150 hover:bg-black hover:text-white hover:cursor-pointer {{ Request::is('reports*') ? 'bg-black text-white hover:bg-slate-800 hover:border-black hover:text-black' : ''}}">
+						Reports</a></li> --}}
 				<li><a href="/myAccount"
 						class="my-1 border-2 border-black rounded block p-2 text-center duration-150 hover:bg-black hover:text-white hover:cursor-pointer {{ Request::is('myAccount*') ? 'bg-black text-white hover:bg-slate-800 hover:border-black hover:text-black' : ''}}">My
 						Account</a></li>

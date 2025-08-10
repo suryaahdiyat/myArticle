@@ -3,6 +3,7 @@
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,5 +47,7 @@ Route::get('/postsBy/{user}', [PostController::class, 'postsBy']);
 Route::post('/post/toggle-like', [LikeController::class, 'toggleLike'])->middleware('auth');
 
 Route::resource('/comments', CommentController::class)->middleware('auth');
+
+Route::resource('/reports', ReportController::class)->middleware('auth');
 
 // Route::resource('/like',LikeController::class);
