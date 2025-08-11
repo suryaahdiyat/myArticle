@@ -94,7 +94,7 @@ class PostController extends Controller
     public function create()
     {
         // dd('berhasil');
-        return view('Posts.addpost');
+        return view('Posts.addPost');
     }
     public function store(Request $request)
     {
