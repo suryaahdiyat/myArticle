@@ -91,10 +91,5 @@ Run application
 php artisan serve
 
 🤖 AI Support Explanation
-Jika diintegrasikan dengan AI, MyArticle dapat:
-
-Mencarikan artikel secara cerdas berdasarkan kata kunci
-
-Memberikan rekomendasi artikel berdasarkan riwayat pembaca
-
-Membantu admin membuat ringkasan artikel atau laporan interaksi
+Proyek ini dikembangkan dengan bantuan AI di hampir seluruh aspek, mulai dari perancangan ide, pembuatan desain UI, penulisan controller, hingga perancangan database, serta dalam pembuatan file README ini.
+AI berperan sebagai asisten pengembang untuk mempercepat proses pembuatan, memberikan solusi saat terjadi kendala, serta membantu menghasilkan kode yang lebih efisien.
