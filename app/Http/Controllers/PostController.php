@@ -159,7 +159,7 @@ class PostController extends Controller
 
     public function postsBy(User $user)
     {
-        return view('pages.postsBy', [
+        return view('Pages.postsBy', [
             'posts' => $user->posts()->paginate(8)
         ]);
     }
